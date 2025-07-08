@@ -1,0 +1,53 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Aura TV - Web App</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #111; color: #fff; padding: 20px; }
+    input, button { padding: 10px; margin: 5px; width: 80%; max-width: 400px; display: block; }
+    .channel { margin: 10px 0; padding: 10px; background: #222; border-radius: 5px; cursor: pointer; }
+    video { width: 100%; max-width: 800px; margin-top: 20px; background: #000; }
+  </style>
+</head>
+<body>
+  <h1>Aura IPTV</h1>
+  <div id="login">
+    <input type="text" id="host" placeholder="Host (ej. http://tuiptv.com:8080)">
+    <input type="text" id="username" placeholder="Usuario">
+    <input type="password" id="password" placeholder="Contraseña">
+    <button onclick="loadChannels()">Entrar</button>
+  </div>
+  <div id="channels"></div>
+  <video id="player" controls autoplay></video>
+
+  <script>
+    async function loadChannels() {
+      const host = document.getElementById('host').value.trim();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const url = `${host}/player_api.php?username=${username}&password=${password}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const channels = data.live_streams || [];
+        const list = document.getElementById('channels');
+        list.innerHTML = '<h2>Canales:</h2>';
+        channels.slice(0, 10).forEach(ch => {
+          const el = document.createElement('div');
+          el.className = 'channel';
+          el.textContent = ch.name;
+          el.onclick = () => {
+            document.getElementById('player').src = ch.stream_url || `${host}/live/${username}/${password}/${ch.stream_id}.m3u8`;
+          };
+          list.appendChild(el);
+        });
+      } catch (err) {
+        alert('Error al conectar con el servidor. Revisa los datos.');
+      }
+    }
+  </script>
+</body>
+</html>
